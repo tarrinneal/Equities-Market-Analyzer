@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 import pandas as pd
 import pandas_datareader as web
-from gsheet import SheetService
 import json as js
 
 #region Startup Conditions
@@ -18,7 +17,6 @@ GET_OPTIONS = False
 UPDATE_YIELDS = 0
 #endregion
 #region Program Constants
-SPREADSHEET_ID = '1WwWiShznSibNzz8czwR9FYXb_zGJQmoKltM8gIUHFTc'
 COMPANIES_FILE = 'Trading Data/companies.txt'
 STOCKS_FILE = 'Trading Data/stocks.json'
 ETFS_FILE = 'Trading Data/etfs.json'
@@ -30,10 +28,6 @@ ETFS_URL = 'https://api.nasdaq.com/api/screener/etf?offset={}'
 
 TIME_RANGES = ['1d', '1w', '1m', '3m', '1y', '5y', '10y', 'max']
 OPTIONS_CONTRACT_RANGE = "3m"
-#endregion
-#region Global Variables
-sheet_serv = SheetService()
-sheet_serv.Login()
 #endregion
 #region CLI Functions
 def printProgramStatus(message):
@@ -62,35 +56,6 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
 def __call_prog_bar(start, stop, current, final, msg = ""):
   time_remaining =  time.strftime("%H hours, %M minutes, %S seconds remaining", time.gmtime((stop - start).total_seconds() * (final / current - 1))) 
   printProgressBar(current, final, prefix = 'Progress:', suffix = f'Complete, {time_remaining}{msg:20}', length = 50)
-#endregion
-#region Google Sheets Interface
-def GetCompanies(from_google_sheets):
-  companies = []
-  txt = ""
-
-  if from_google_sheets:
-    ranges = ["Holdings!A2:A", "Holdings!E2:E"]
-
-    symbols = sheet_serv.GetSheetData(SPREADSHEET_ID, ranges[0])
-    descriptions = sheet_serv.GetSheetData(SPREADSHEET_ID, ranges[1])
-    
-    for x in range(0, len(symbols) - 1):
-      companies.append([symbols[x][0], descriptions[x][0]])
-      txt += f"{symbols[x][0]},{descriptions[x][0]}\r\n"
-  else:
-    with open(COMPANIES_FILE, mode='r') as cf:
-      cf.readline()
-
-      while True:
-        comp = cf.readline().split(sep=',')
-
-        if comp[0] == '':
-          break
-        
-        companies.append([comp[0], comp[1][:-1]])
-        txt += str.join(',', comp)
-
-  return companies, txt
 #endregion
 #region Updating Yield Functions
 def LoadTempGrowthData(all_tickers, temp_file):
@@ -186,7 +151,7 @@ def DownloadSecurityInformation(security_type):
     __call_prog_bar(start, stop, 1, page_count)
 
     for x in range(2, page_count):
-      obj = html_to_object(urllib.request.urlopen(STOCKS_URL.format(x, PAGE_COUNT)).read())
+      obj = html_to_stock(urllib.request.urlopen(STOCKS_URL.format(x, PAGE_COUNT)).read())
       all_stocks += obj
       
       stop = dt.datetime.now()
@@ -202,7 +167,7 @@ def DownloadSecurityInformation(security_type):
     __call_prog_bar(start, stop, 1, page_count)
 
     for x in range(0, page_count - 1):
-      obj = html_to_object(urllib.request.urlopen(ETFS_URL.format(x * 50, PAGE_COUNT)).read())
+      obj = html_to_etf(urllib.request.urlopen(ETFS_URL.format(x * 50, PAGE_COUNT)).read())
       all_etfs += obj
       
       stop = dt.datetime.now()

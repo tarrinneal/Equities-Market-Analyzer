@@ -1,4 +1,8 @@
-import requests, datetime, dateutil, math, scipy.stats
+import requests, datetime, dateutil, math, scipy.stats, os, re
+
+_CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+_API_KEYS_FILE = _CURRENT_DIRECTORY + '/assets/api_keys.txt'
+_OPTIONS_URL = 'https://api.tdameritrade.com/v1/marketdata/chains'
 
 class OptionsContract:
   def __init__(self, *args, **kwargs):
@@ -17,13 +21,10 @@ class OptionsContract:
     }
 
 class Options:
-  __API_KEY = "9TCE4V1ADTXKGSVZF8Q9RMRQK7OJQBW4"
-  __OPTIONS_URL = 'https://api.tdameritrade.com/v1/marketdata/chains'
-  
 #region Black-Scholes Model
   @staticmethod
   def __d1(s,x,r,t,o):
-    return (math.log(s/x, math.e)+t*(r+pow(o,2)*0.5))/(o*math.sqrt(t))
+    return (math.log(s / x, math.e) + t * (r + pow(o, 2) * 0.5)) / (o * math.sqrt(t))
   @staticmethod
   def __d2(d1, o, t):
     return d1 - o * math.sqrt(t)
@@ -48,14 +49,22 @@ class Options:
   
   @staticmethod
   def CallValue(option):
-    return Options.__call_value(option.underlyingPrice, option.strikePrice, option.interestRate / 100, option.daysToExpiration/365, option.volatility/100) 
+    return Options.__call_value(option.underlyingPrice, option.strikePrice, option.interestRate / 100, option.daysToExpiration / 365, option.volatility / 100) 
   @staticmethod
   def PutValue(option):
-    return Options.__put_value(option.underlyingPrice, option.strikePrice, option.interestRate / 100, option.daysToExpiration/365, option.volatility/100) 
+    return Options.__put_value(option.underlyingPrice, option.strikePrice, option.interestRate / 100, option.daysToExpiration / 365, option.volatility / 100) 
 #endregion
-  
-  @staticmethod
-  def GetOptions(ticker_symbol, to_date, valuable = True):
+
+  def __init__(self):
+    with open(_API_KEYS_FILE, mode='r+') as akf:
+      key_match = re.search('^td_ameritrade\=(.+)$', akf.read(), flags=re.MULTILINE)
+    
+    if type(key_match) == None:
+      raise KeyError("Could not locate Alpha Vantage API key")
+
+    self.APIKey = key_match.groups()[1]
+
+  def GetOptions(self, ticker_symbol, to_date, valuable = True):
     def get_options(contract_type, options_json):
       contract_location = "callExpDateMap" if contract_type == 'call' else "putExpDateMap"
      
@@ -89,8 +98,8 @@ class Options:
           else: contracts.append(new_opt)
       return contracts
 
-    r = requests.get(url=Options.__OPTIONS_URL, params = {
-      'apikey' : Options.__API_KEY,
+    r = requests.get(url=_OPTIONS_URL, params = {
+      'apikey' : self.APIKey,
       'symbol' : ticker_symbol,
       'contractType' : "ALL",
       'strikeCount' : 50,

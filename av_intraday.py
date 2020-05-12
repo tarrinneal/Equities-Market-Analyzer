@@ -1,8 +1,10 @@
-import json as js, datetime as dt, pandas as pd, math, time
+import json as js, datetime as dt, pandas as pd, math, time, os, re
 from dateutil.relativedelta import relativedelta
 from alpha_vantage.timeseries import *
 
-VANTAGE_KEY = 'B3S7T91E0DZAFGGY'
+CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+API_KEYS_FILE = CURRENT_DIRECTORY + '/assets/api_keys.txt'
+SYMBOLS_FILE = CURRENT_DIRECTORY + '/assets/symbols.txt'
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 CURRENCY = '${:,.2f}'
 
@@ -16,8 +18,15 @@ def GetPerformance(ticker : str, capital : float, interval : str):
     return (2 * (n - i + 1)) / (n * (n + 1))
 
   #region Setup
+  # Get API Key
+  with open(API_KEYS_FILE, mode='r+') as akf:
+    key_match = re.search('^alpha_vantage\=(.+)$', akf.read(), flags=re.MULTILINE)
+  
+  if type(key_match) == None:
+    raise KeyError("Could not locate Alpha Vantage API key")
+  
   # Use AlphaVantage to get Intraday Trading History
-  ts = TimeSeries(key=VANTAGE_KEY, output_format='json')
+  ts = TimeSeries(key= key_match.groups()[0], output_format='json')
   data, meta_data = ts.get_intraday(ticker, interval=interval, outputsize='full')
   
   # Get Dates available to create model
@@ -65,17 +74,9 @@ def GetPerformance(ticker : str, capital : float, interval : str):
 title = "Dom's Spicy & Special Portfolio That's Better Than Literally Everyone Else's"
 print(f"{title}\r\n{''.join(['-'] * len(title))}")
 
-symbols = [
-  'TQQQ',
-  'TECL',
-  'UDOW',
-  'WEBL',
-  'CURE',
-  'SPXL',
-  'AMZN',
-  'MSFT',
-  'TSLA',
-  'TTD']
+with open(SYMBOLS_FILE, mode='r+') as sf:
+  symbols = [line.strip('\n') for line in sf.readlines()]
+  
 starting_capital = 2000
 split = starting_capital / len(symbols)
 performances = []
