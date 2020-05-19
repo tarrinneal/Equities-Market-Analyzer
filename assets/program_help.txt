@@ -1,0 +1,36 @@
+-----------------------------
+Equities Market Analyzer Help
+-----------------------------
+
+Available Commands:
+
+[quit|q]                        - Exit the program, saves any changes made to database
+
+[init|initialize|i]             - This will scrape the web for equities listed in US markets
+
+[update|u]                      - With no additional options, this will update all performance numbers for equities and options.
+  Additional Options:
+    [-all|-a]                   - Will update both equities and options data
+    [-single|-s] <symbol>       - Will update the peformance data for a single equity
+    [-e|-equities|-equity]      - Will update just the equities performance data
+    [-o|-options|-option]       - Will update just the options performance data
+
+[view|v]                        - Displays all equity listings, equities, and options
+  Additional Options:
+    <python slice>              - Slices the previous table requested, same syntax as Python slice object. 
+                                  Ex. `view -e :10` would display the first 10 equities
+    -sql <custom SQL >          - Use custom SQL query, not recommended to use.
+    [s|sort_by|sort|order_by] (<column name> [a|d])
+                                - Sorts the previous table requested by a column name in either ascending or descending order
+    [-all|-a]                   - Displays equity listings, equities, and options
+    [-el|-equitylistings]       - Displays equity listings 
+    [-e|-equities|-equity]      - Displays equities
+    [-o|-options|-option]       - Displays options 
+[backtest|bt]                   - Backtests Dollar Cost Averaging Strategy on a symbol
+  Required:
+    <symbol>                    - Symbol of equity to perform backtest upon
+  Optional:
+    <time range>                - Time range formatted string (default 'Max'). Ex: '5y' would mean start test 5 years ago.
+    <principal>                 - Initial investment (default '1000')
+    <periodic investment>       - Value added every period (default '1000')
+    <period>                    - Number of days between each periodic investment (default: '30')

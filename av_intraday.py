@@ -71,7 +71,7 @@ def GetPerformance(ticker : str, capital : float, interval : str):
   cagr = round(GetCAGR(capital, uninvested_cash, start_date, current_date), 3)
   return [ticker, start_date, current_date, uninvested_cash, shares_outstanding, cagr]
 
-title = "Dom's Spicy & Special Portfolio That's Better Than Literally Everyone Else's"
+title = f"Portfolio data for '{SYMBOLS_FILE}''"
 print(f"{title}\r\n{''.join(['-'] * len(title))}")
 
 with open(SYMBOLS_FILE, mode='r+') as sf:
