@@ -1,4 +1,4 @@
-# Equities Market Analzyer
+# Dom Equities Market Analzyer
 
 This project was designed to provide insight into US equity markets and to test out trading strategies.
 It will first scrape data from the internet to get the names and symbols of US listed equities.
